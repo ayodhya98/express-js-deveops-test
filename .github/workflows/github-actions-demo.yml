@@ -17,32 +17,33 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-          
-      - name: Verify SSH Key
-        run: |
-          echo "Checking SSH key format..."
-          head -n 1 ~/.ssh/id_rsa
-          tail -n 1 ~/.ssh/id_rsa
 
       - name: Deploy Application
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "
-            cd /home/ubuntu/backends/express-js-deveops-test &&
-            echo 'Pulling latest code...' &&
-            git pull origin main &&
-            echo 'Installing dependencies...' &&
-            npm install --production &&
-            echo 'Restarting PM2 app...' &&
-            pm2 restart 0 &&
-            pm2 save &&
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            export PATH="/usr/local/bin:/usr/bin:$PATH"
+            
+            cd /home/ubuntu/backends/express-js-deveops-test
+            echo 'Pulling latest code...'
+            git pull origin main
+            
+            echo 'Installing dependencies...'
+            npm install --production
+            
+            echo 'Restarting PM2 app...'
+            pm2 restart 0
+            pm2 save
+            
             echo 'Deployment completed successfully!'
-          "
+          EOF
 
       - name: Verify Deployment
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            export PATH="/usr/local/bin:/usr/bin:$PATH"
+            
             pm2 status
-          "
+          EOF
