@@ -24,7 +24,8 @@ jobs:
       - name: Deploy Application
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            export PATH="/usr/local/bin:/usr/bin:$PATH"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             
             cd /home/ubuntu/backends/express-js-deveops-test
             echo 'Pulling latest code...'
@@ -43,7 +44,8 @@ jobs:
       - name: Verify Deployment
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            export PATH="/usr/local/bin:/usr/bin:$PATH"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             
             pm2 status
           EOF
